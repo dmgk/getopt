@@ -10,23 +10,23 @@ import (
 )
 
 // InvalidOptionError is returned when scanner encounters an option not listed in optstring.
-type InvalidOptionError rune
+type InvalidOptionError byte
 
 func (e InvalidOptionError) Error() string {
-	return fmt.Sprintf("invalid option: %q", rune(e))
+	return fmt.Sprintf("invalid option: %q", byte(e))
 }
 
 // MissingArgumentError is returned when option is missing a required argument.
-type MissingArgumentError rune
+type MissingArgumentError byte
 
 func (e MissingArgumentError) Error() string {
-	return fmt.Sprintf("option requires an argument: %q", rune(e))
+	return fmt.Sprintf("option requires an argument: %q", byte(e))
 }
 
 // Option contains option name and optional argument value.
 type Option struct {
 	// Option name
-	Opt rune
+	Opt byte
 	// Option argument, if any
 	Arg *string
 }
@@ -119,7 +119,7 @@ type Scanner struct {
 	// Current index in the arg
 	optpos int
 	// Current option
-	optopt rune
+	optopt byte
 	// Last error, if any
 	err error
 }
@@ -139,8 +139,8 @@ func New(optstring string) (*Scanner, error) {
 // option argument is to follow.
 // If optstring starts with ':' then all option argument are treated as optional.
 func NewArgv(optstring string, argv []string) (*Scanner, error) {
-	for _, c := range optstring {
-		if !isOptionChar(byte(c)) && c != ':' {
+	for _, c := range []byte(optstring) {
+		if !isOptionChar(c) && c != ':' {
 			return nil, fmt.Errorf("invalid optstring character: %q", c)
 		}
 	}
@@ -176,9 +176,9 @@ func (s *Scanner) Scan() bool {
 // If optstring starts with ':' then all arguments are treated as optional and missing
 // arguments do not cause errors.
 func (s *Scanner) Option() (*Option, error) {
-	s.optopt = rune(s.arg[s.optpos])
+	s.optopt = s.arg[s.optpos]
 
-	idx := strings.IndexRune(s.optstring, s.optopt)
+	idx := strings.IndexByte(s.optstring, s.optopt)
 	if idx < 0 {
 		s.err = InvalidOptionError(s.optopt)
 		return nil, s.err
