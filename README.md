@@ -1,10 +1,11 @@
-# Minimal, POSIX compatible argument parsing in Go
+## getopt
 
 Package getopt provides a minimal, getopt(3)-like argument parsing implementation with POSIX compatible semantics.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/dmgk/getopt.svg)](https://pkg.go.dev/github.com/dmgk/getopt)
+![Tests](https://github.com/dmgk/getopt/actions/workflows/tests.yml/badge.svg)
 
-## Example
+#### Example
 
 ```go
 package main
