@@ -2,6 +2,8 @@
 
 Package getopt provides a minimal, getopt(3)-like argument parsing implementation with POSIX compatible semantics.
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/dmgk/getopt.svg)](https://pkg.go.dev/github.com/dmgk/getopt)
+
 ## Example
 
 ```go
