@@ -5,6 +5,7 @@ package getopt
 import (
 	"fmt"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 )
@@ -122,6 +123,8 @@ type Scanner struct {
 	optopt byte
 	// Last error, if any
 	err error
+	// Basename of argv[0]
+	progname string
 }
 
 // New returns a new options scanner using os.Args as the command line arguments source.
@@ -149,6 +152,7 @@ func NewArgv(optstring string, argv []string) (*Scanner, error) {
 		optstring: optstring,
 		optind:    1,
 		optpos:    1,
+		progname:  path.Base(argv[0]),
 	}, nil
 }
 
@@ -237,6 +241,11 @@ func (s *Scanner) Args() []string {
 		return s.argv[s.optind:]
 	}
 	return nil
+}
+
+// ProgramName returns basename of argv[0].
+func (s *Scanner) ProgramName() string {
+	return s.progname
 }
 
 func isOptionChar(c byte) bool {

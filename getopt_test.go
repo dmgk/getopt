@@ -20,16 +20,16 @@ func ExampleNewArgv() {
 		}
 
 		if opt.HasArg() {
-			fmt.Printf("got option %q with arg %q\n", opt.Opt, opt)
+			fmt.Printf("%s: got option %q with arg %q\n", scanner.ProgramName(), opt.Opt, opt)
 		} else {
-			fmt.Printf("got option %q\n", opt.Opt)
+			fmt.Printf("%s: got option %q\n", scanner.ProgramName(), opt.Opt)
 		}
 	}
 	// Output:
-	// got option 'b'
-	// got option 'a' with arg "42"
-	// got option 'v'
-	// got option 'z' with arg "1"
+	// getopt: got option 'b'
+	// getopt: got option 'a' with arg "42"
+	// getopt: got option 'v'
+	// getopt: got option 'z' with arg "1"
 }
 
 func TestOptionsNoArgs(t *testing.T) {

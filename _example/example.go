@@ -8,25 +8,25 @@ import (
 
 // go run example.go -ba42 -v -z1 -x arg1 arg2
 func main() {
-	scanner, err := getopt.New("a:bvz:")
+	opts, err := getopt.New("a:bvz:")
 	if err != nil {
 		fmt.Printf("error creating scanner: %s\n", err)
 		return
 	}
 
-	for scanner.Scan() {
-		opt, err := scanner.Option()
+	for opts.Scan() {
+		opt, err := opts.Option()
 		if err != nil {
-			fmt.Printf("error: %s\n", err)
+			fmt.Printf("%s: error parsing option: %s\n", opts.ProgramName(), err)
 			continue
 		}
 
 		if opt.HasArg() {
-			fmt.Printf("got option %q with arg %q\n", opt.Opt, opt)
+			fmt.Printf("%s: got option %q with arg %q\n", opts.ProgramName(), opt.Opt, opt)
 		} else {
-			fmt.Printf("got option %q\n", opt.Opt)
+			fmt.Printf("%s: got option %q\n", opts.ProgramName(), opt.Opt)
 		}
 	}
 
-	fmt.Printf("remaining arguments: %v\n", scanner.Args())
+	fmt.Printf("%s: remaining arguments: %v\n", opts.ProgramName(), opts.Args())
 }
