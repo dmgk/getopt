@@ -47,6 +47,6 @@ example: got option 'b'
 example: got option 'a' with arg "42"
 example: got option 'v'
 example: got option 'z' with arg "1"
-example: error parsing option: invalid option: 'x'
+example: error parsing option: unknown option: -x
 example: remaining arguments: [-x arg1 arg2]
 ```

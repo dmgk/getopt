@@ -14,14 +14,14 @@ import (
 type InvalidOptionError byte
 
 func (e InvalidOptionError) Error() string {
-	return fmt.Sprintf("invalid option: %q", byte(e))
+	return fmt.Sprintf("unknown option: -%c", byte(e))
 }
 
 // MissingArgumentError is returned when option is missing a required argument.
 type MissingArgumentError byte
 
 func (e MissingArgumentError) Error() string {
-	return fmt.Sprintf("option requires an argument: %q", byte(e))
+	return fmt.Sprintf("option -%c requires an argument", byte(e))
 }
 
 // Option contains option name and optional argument value.
