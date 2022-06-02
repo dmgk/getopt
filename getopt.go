@@ -119,8 +119,6 @@ type Scanner struct {
 	arg string
 	// Current index in the arg
 	optpos int
-	// Current option
-	optopt byte
 	// Last error, if any
 	err error
 	// Basename of argv[0]
@@ -157,7 +155,7 @@ func NewArgv(optstring string, argv []string) (*Scanner, error) {
 }
 
 // Scan advances options scanner to the next option.
-// It returns false when there are no more options or parsing is cancelled by "--".
+// It returns false when there are no more options or parsing is terminated by "--".
 func (s *Scanner) Scan() bool {
 	if s.optind == len(s.argv) || s.err != nil {
 		return false
@@ -180,20 +178,23 @@ func (s *Scanner) Scan() bool {
 // If optstring starts with ':' then all arguments are treated as optional and missing
 // arguments do not cause errors.
 func (s *Scanner) Option() (*Option, error) {
-	s.optopt = s.arg[s.optpos]
+	optopt := s.arg[s.optpos]
 
-	idx := strings.IndexByte(s.optstring, s.optopt)
+	idx := strings.IndexByte(s.optstring, optopt)
 	if idx < 0 {
-		s.err = InvalidOptionError(s.optopt)
+		s.err = InvalidOptionError(optopt)
 		return nil, s.err
 	}
 
-	if idx < len(s.optstring)-1 && s.optstring[idx+1] == ':' {
+	hasArg := idx < len(s.optstring)-1 && s.optstring[idx+1] == ':'
+	optionalArg := s.optstring[0] == ':' || idx < len(s.optstring)-2 && s.optstring[idx+2] == ':'
+
+	if hasArg {
 		// option with an argument
 		if len(s.arg) > s.optpos+1 {
 			// option and argument are in the same argv element
 			res := &Option{
-				Opt: s.optopt,
+				Opt: optopt,
 				Arg: optArg(s.arg[s.optpos+1:]),
 			}
 			s.optind += 1
@@ -201,23 +202,44 @@ func (s *Scanner) Option() (*Option, error) {
 			return res, nil
 		} else if s.optind+1 < len(s.argv) {
 			// option argument is in the next argv element
-			res := &Option{
-				Opt: s.optopt,
-				Arg: optArg(s.argv[s.optind+1]),
+			if !optionalArg {
+				// consume next argv element
+				res := &Option{
+					Opt: optopt,
+					Arg: optArg(s.argv[s.optind+1]),
+				}
+				s.optind += 2
+				s.optpos = 1
+				return res, nil
+			} else {
+				// consume next argv element only if it's not an option
+				optarg := s.argv[s.optind+1]
+				if optarg != "" && optarg[0] != '-' {
+					res := &Option{
+						Opt: optopt,
+						Arg: optArg(s.argv[s.optind+1]),
+					}
+					s.optind += 2
+					s.optpos = 1
+					return res, nil
+				} else {
+					s.optind += 1
+					s.optpos = 1
+					return &Option{
+						Opt: optopt,
+					}, nil
+				}
 			}
-			s.optind += 2
-			s.optpos = 1
-			return res, nil
 		} else {
-			if s.optstring != "" && s.optstring[0] == ':' {
-				// optstring starts with ':', option argument is optional
+			// argument is required but was not provided
+			if optionalArg {
 				s.optind += 1
 				s.optpos = 1
 				return &Option{
-					Opt: s.optopt,
+					Opt: optopt,
 				}, nil
 			} else {
-				s.err = MissingArgumentError(s.optopt)
+				s.err = MissingArgumentError(optopt)
 				return nil, s.err
 			}
 		}
@@ -230,7 +252,7 @@ func (s *Scanner) Option() (*Option, error) {
 			s.optpos = 1
 		}
 		return &Option{
-			Opt: s.optopt,
+			Opt: optopt,
 		}, nil
 	}
 }

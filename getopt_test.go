@@ -8,7 +8,7 @@ import (
 )
 
 func ExampleNewArgv() {
-	scanner, err := NewArgv("a:bvz:", []string{"getopt", "-ba42", "-v", "-z1"})
+	scanner, err := NewArgv("a:bz::v", []string{"getopt", "-ba42", "-v", "-z", "--", "-w", "arg1", "arg2"})
 	if err != nil {
 		panic("error creating scanner: " + err.Error())
 	}
@@ -25,11 +25,13 @@ func ExampleNewArgv() {
 			fmt.Printf("%s: got option %q\n", scanner.ProgramName(), opt.Opt)
 		}
 	}
+	fmt.Printf("%s: remaining arguments: %q\n", scanner.ProgramName(), scanner.Args())
 	// Output:
 	// getopt: got option 'b'
 	// getopt: got option 'a' with arg "42"
 	// getopt: got option 'v'
-	// getopt: got option 'z' with arg "1"
+	// getopt: got option 'z'
+	// getopt: remaining arguments: ["-w" "arg1" "arg2"]
 }
 
 func TestOptionsNoArgs(t *testing.T) {
@@ -182,6 +184,12 @@ func TestOptionsWithArgs(t *testing.T) {
 			nil,
 		},
 		{
+			"a:b",
+			[]string{"getopt", "-a-bcd"},
+			[]*Option{{Opt: 'a', Arg: optArg("-bcd")}},
+			nil,
+		},
+		{
 			"ab:",
 			[]string{"getopt", "-abcd"},
 			[]*Option{{Opt: 'a'}, {Opt: 'b', Arg: optArg("cd")}},
@@ -204,6 +212,48 @@ func TestOptionsWithArgs(t *testing.T) {
 			":ab:c:",
 			[]string{"getopt", "-a", "-bc"},
 			[]*Option{{Opt: 'a'}, {Opt: 'b', Arg: optArg("c")}},
+			nil,
+		},
+		{
+			":ab:c:",
+			[]string{"getopt", "-a", "-b", "c"},
+			[]*Option{{Opt: 'a'}, {Opt: 'b', Arg: optArg("c")}},
+			nil,
+		},
+		{
+			":ab:c:",
+			[]string{"getopt", "-a", "-b", "-c"},
+			[]*Option{{Opt: 'a'}, {Opt: 'b'}, {Opt: 'c'}},
+			nil,
+		},
+		{
+			"ab::",
+			[]string{"getopt", "-ab"},
+			[]*Option{{Opt: 'a'}, {Opt: 'b'}},
+			nil,
+		},
+		{
+			"a::bc:",
+			[]string{"getopt", "-a", "foo", "-bc42"},
+			[]*Option{{Opt: 'a', Arg: optArg("foo")}, {Opt: 'b'}, {Opt: 'c', Arg: optArg("42")}},
+			nil,
+		},
+		{
+			"a::bc:",
+			[]string{"getopt", "-a", "-bc42"},
+			[]*Option{{Opt: 'a'}, {Opt: 'b'}, {Opt: 'c', Arg: optArg("42")}},
+			nil,
+		},
+		{
+			"a::bc::",
+			[]string{"getopt", "-a", "-bc42"},
+			[]*Option{{Opt: 'a'}, {Opt: 'b'}, {Opt: 'c', Arg: optArg("42")}},
+			nil,
+		},
+		{
+			"a::bc::",
+			[]string{"getopt", "-a", "-bc"},
+			[]*Option{{Opt: 'a'}, {Opt: 'b'}, {Opt: 'c'}},
 			nil,
 		},
 	}
@@ -254,6 +304,20 @@ func TestOptionsRemainingArgs(t *testing.T) {
 		},
 		{
 			"ab",
+			[]string{"getopt", "-a", "--", "-b", "--", "arg1", "arg2"},
+			[]*Option{{Opt: 'a'}},
+			[]string{"-b", "--", "arg1", "arg2"},
+			nil,
+		},
+		{
+			":a:b",
+			[]string{"getopt", "-a", "--", "-b", "--", "arg1", "arg2"},
+			[]*Option{{Opt: 'a'}},
+			[]string{"-b", "--", "arg1", "arg2"},
+			nil,
+		},
+		{
+			"a::b",
 			[]string{"getopt", "-a", "--", "-b", "--", "arg1", "arg2"},
 			[]*Option{{Opt: 'a'}},
 			[]string{"-b", "--", "arg1", "arg2"},

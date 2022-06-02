@@ -16,9 +16,12 @@ import (
 	"github.com/dmgk/getopt"
 )
 
-// go run example.go -ba42 -v -z1 -x arg1 arg2
+// go run example.go -ba42 -v -z -- -w arg1 arg2
 func main() {
-	opts, err := getopt.New("a:bvz:")
+	// -a requires an argument
+	// -b and -v have no arguments
+	// -z may have an optional argument
+	opts, err := getopt.New("a:bz::v")
 	if err != nil {
 		fmt.Printf("error creating scanner: %s\n", err)
 		return
@@ -43,10 +46,10 @@ func main() {
 ```
 
 ```
+$ go run example.go -ba42 -v -z -- -w arg1 arg2
 example: got option 'b'
 example: got option 'a' with arg "42"
 example: got option 'v'
-example: got option 'z' with arg "1"
-example: error parsing option: unknown option: -x
-example: remaining arguments: [-x arg1 arg2]
+example: got option 'z'
+example: remaining arguments: [-w arg1 arg2]
 ```
